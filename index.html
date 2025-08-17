@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Papağanla Harf Avı</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #2c8a4a;
+      background-image: url("arka_orman.jpg");
+      background-size: cover;
+      background-position: center;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      min-height: 100vh;
+      touch-action: manipulation;
+    }
+
+    .bilgi-penceresi {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      color: white;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+
+    .bilgi-icerik {
+      max-width: 95%;
+      max-height: 80%;
+      overflow-y: auto;
+      background: #2c3e50;
+      padding: 15px;
+      border-radius: 12px;
+      border: 2px solid #8bc34a;
+    }
+
+    .bilgi-kapat {
+      margin-top: 15px;
+      padding: 10px 20px;
+      background: #8bc34a;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .papagan {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      width: 120px;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    .soru-balon {
+      background: #f1f8e9;
+      border: 2px solid #8bc34a;
+      border-radius: 12px;
+      padding: 10px;
+      margin: 15px auto;
+      font-size: 16px;
+      font-weight: bold;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+      max-width: 90%;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s, transform 0.5s;
+    }
+
+    .kelime-kutulari {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      width: 95%;
+      margin: 10px auto;
+      padding-bottom: 60px;
+    }
+
+    .kelime-kutulari img {
+      width: 100%;
+      max-height: 150px;
+      object-fit: contain;
+      cursor: pointer;
+      border-radius: 8px;
+      border: 3px solid transparent;
+      background: white;
+      padding: 5px;
+      box-sizing: border-box;
+      transition: all 0.2s;
+      opacity: 0;
+      transform: scale(0.8);
+    }
+
+    .dogru-kutu {
+      border: 3px solid #4CAF50 !important;
+      box-shadow: 0 0 8px rgba(76, 175, 80, 0.7) !important;
+      opacity: 0.8 !important;
+    }
+
+    .yanlis-kutu {
+      border: 3px solid #F44336 !important;
+      box-shadow: 0 0 8px rgba(244, 67, 54, 0.7) !important;
+      opacity: 0.8 !important;
+    }
+
+    #puan {
+      font-size: 18px;
+      margin: 5px 0;
+      color: #155724;
+      background: rgba(255,255,255,0.8);
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+    }
+
+    #mesaj {
+      font-size: 16px;
+      margin: 5px 0;
+      font-weight: bold;
+      min-height: 24px;
+    }
+
+    .button-container {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin: 10px auto;
+    }
+
+    button {
+      font-size: 14px;
+      padding: 8px 12px;
+      background: #8bc34a;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      min-width: 120px;
+    }
+
+    .baslik-animasyon {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      color: white;
+      font-size: 2rem;
+      font-weight: bold;
+      text-shadow: 0 0 10px #8bc34a;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .odul-ekrani {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 3000;
+      color: white;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
+    .odul-resim {
+      width: 150px;
+      height: 150px;
+      margin-bottom: 20px;
+    }
+
+    .odul-baslik {
+      font-size: 2rem;
+      margin-bottom: 10px;
+      color: #FFD700;
+    }
+
+    .odul-puan {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+
+    .odul-buton {
+      padding: 12px 24px;
+      background: #8bc34a;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .papagan {
+        width: 150px;
+        bottom: 20px;
+        right: 20px;
+      }
+      
+      .soru-balon {
+        font-size: 18px;
+        padding: 12px 15px;
+      }
+      
+      .kelime-kutulari {
+        max-width: 600px;
+        gap: 15px;
+      }
+      
+      .kelime-kutulari img {
+        max-height: 180px;
+      }
+      
+      button {
+        font-size: 16px;
+        padding: 10px 15px;
+      }
+
+      .baslik-animasyon {
+        font-size: 3rem;
+      }
+
+      .odul-resim {
+        width: 200px;
+        height: 200px;
+      }
+
+      .odul-baslik {
+        font-size: 2.5rem;
+      }
+    }
+
+    /* Animasyonlar */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .animate-fade-in {
+      animation: fadeIn 1s forwards;
+    }
+
+    .animate-slide-in {
+      animation: slideIn 0.8s forwards;
+    }
+
+    .animate-scale-in {
+      animation: scaleIn 0.6s forwards;
+    }
+
+    .animate-pulse {
+      animation: pulse 1.5s infinite;
+     .medal {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      margin: 20px auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      position: relative;
+    }
+    
+    .medal::after {
+      content: "";
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 20px;
+      border-radius: 10px;
+      background: inherit;
+    }
+    
+    .gold {
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #8B7500;
+    }
+    
+    .silver {
+      background: linear-gradient(135deg, #C0C0C0, #A0A0A0);
+      color: #696969;
+    }
+    
+    .bronze {
+      background: linear-gradient(135deg, #CD7F32, #8B4513);
+      color: #5D3A1A;
+    }
+    
+    .medal-emoji {
+      font-size: 3.5rem;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bilgi-penceresi" id="bilgiPenceresi">
+    <div class="bilgi-icerik">
+      <h2>Papağanla Harf Avı</h2>
+      <p>Bu oyunla Kuran harflerini eğlenerek öğreneceksiniz!</p>
+      <p>🦜 Papağan size hangi harfi aramanız gerektiğini söyleyecek.</p>
+      <p>🔍 Ekrandaki kelimelerde bu harfi bulmaya çalışın.</p>
+      <p>✅ Doğru seçimler +10 puan</p>
+      <p>❌ Yanlış seçimler -5 puan</p>
+      <p>Tüm doğruları bulunca kutlama yapacağız!</p>
+    </div>
+    <button class="bilgi-kapat" onclick="kapatBilgi()">OYUNA BAŞLA</button>
+  </div>
+
+  <div class="baslik-animasyon" id="baslikAnimasyon">Papağanla Harf Avı Başlıyor!</div>
+
+  <img id="papagan" src="papa_soru.gif" alt="Papağan" class="papagan">
+
+  <div class="soru-balon" id="soruBalonu">
+    🦜 Hangi kelimelerde "ء" harfi var? Seç bakalım!
+  </div>
+
+  <div class="button-container">
+    <button onclick="sesOynat(soruSesDosyasi)">🔁 Soruyu Tekrar Dinle</button>
+    <button onclick="yeniSoruGetir()">🔄 Yeni Soru</button>
+  </div>
+
+  <div class="kelime-kutulari" id="kutular"></div>
+
+  <h2 id="puan">Puan: 0</h2>
+  <div id="mesaj"></div>
+
+  <div class="odul-ekrani" id="odulEkrani">
+    <div class="medal" id="odulResim">
+      <span class="medal-emoji" id="odulEmoji">🏅</span>
+    </div>
+    <h2 class="odul-baslik" id="odulBaslik">Tebrikler!</h2>
+    <div class="odul-puan" id="odulPuan">Toplam Puan: 100</div>
+    <p id="odulMesaj">Harika performans gösterdiniz!</p>
+    <button class="odul-buton" onclick="kapatOyun()">OYUNDAN ÇIK</button>
+  </div>
+
+  <script>
+    // Oyun verileri
+    const sorular = [
+      // Seviye 1 (1-5)
+      {
+        soru: "🦜 1. Hangi kelimelerde 'ء' harfi var? Seç bakalım!",
+        sesDosyasi: "soru_baslangic.mp3",
+        seviye: 1,
+        kutular: [
+          { src: "veminhum.png", dogruMu: false },
+          { src: "uleike.png", dogruMu: true },
+          { src: "ved-u.png", dogruMu: false },
+          { src: "yuminune.png", dogruMu: true },
+          { src: "bi-ilmihi.png", dogruMu: false },
+          { src: "raufun.png", dogruMu: true }
+        ]
+      },
+      {
+        soru: "🦜 2. Genizden çıkan 'ن ' harfini bul bakalım!",
+        sesDosyasi: "nun_harfi.mp3",
+        seviye: 1,
+        kutular: [
+          { src: "yulinun.png", dogruMu: true },
+          { src: "tertebu.png", dogruMu: false },
+          { src: "inkuntum.png", dogruMu: true },
+          { src: "fezugu.png", dogruMu: false },
+          { src: "yefterinehu.png", dogruMu: true },
+          { src: "azizun.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 3. Hangi kelimeler 'ل ' harfi var? Bulabilir misin?",
+        sesDosyasi: "soru_lam_harfi.mp3",
+        seviye: 1,
+        kutular: [
+          { src: "halegakum.png", dogruMu: true },
+          { src: "veiyyeke.png", dogruMu: false },
+          { src: "lilmeleiketi.png", dogruMu: true },
+          { src: "veize.png", dogruMu: false },
+          { src: "tetlune.png", dogruMu: true },
+          { src: "bieyeti.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 4. Hangi kelimelerde 'ق ' harfi var? Hadi seçimini yap!",
+        sesDosyasi: "ق_harfi.mp3",
+        seviye: 1,
+        kutular: [
+          { src: "egfeluhe.png", dogruMu: true },
+          { src: "yetemetteu.png", dogruMu: false },
+          { src: "furganu.png", dogruMu: true },
+          { src: "yeltefit.png", dogruMu: false },
+          { src: "veelgayne.png", dogruMu: true },
+          { src: "begteten.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 5. ' غ ' harfini bulabilir misin? Haydi bakalım!",
+        sesDosyasi: "ghayn_harfi.mp3",
+        seviye: 1,
+        kutular: [
+          { src: "tenfuzu.png", dogruMu: false },
+          { src: "yuğni.png", dogruMu: true },
+          { src: "tunfigu.png", dogruMu: false },
+          { src: "bilğaybi.png", dogruMu: true },
+          { src: "senefruğu.png", dogruMu: true },
+          { src: "tenfeakum.png", dogruMu: false }
+        ]
+      },
+      // Seviye 2 (6-10)
+      {
+        soru: "🦜 6. 'ب ' harfinin hangi kelimede olduğunu bulabilecek misin?!",
+        sesDosyasi: "be_harfi.mp3",
+        seviye: 2,
+        kutular: [
+          { src: "fenbeceset.png", dogruMu: true },
+          { src: "hafidatun.png", dogruMu: false },
+          { src: "bunyenehu.png", dogruMu: true },
+          { src: "yetehayyeru.png", dogruMu: false },
+          { src: "bibeyyinetin.png", dogruMu: true },
+          { src: "liyuhricenne.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 7. 'ك ' Harfinin kutucukları senin onları bulmanı bekliyor!",
+        sesDosyasi: "kef_harfi.mp3",
+        seviye: 2,
+        kutular: [
+          { src: "1.png", dogruMu: true },
+          { src: "4.png", dogruMu: false },
+          { src: "2.png", dogruMu: true },
+          { src: "5.png", dogruMu: false },
+          { src: "3.png", dogruMu: true },
+          { src: "6.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 8. Hangi kelimelerde 'c' sesi veren 'ج ' harfi saklı?",
+        sesDosyasi: "cim_harfi.mp3",
+        seviye: 2,
+        kutular: [
+          { src: "7.png", dogruMu: true },
+          { src: "10.png", dogruMu: false },
+          { src: "8.png", dogruMu: true },
+          { src: "11.png", dogruMu: false },
+          { src: "9.png", dogruMu: true },
+          { src: "12.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 9. Hangi kelimelerde 'ş' sesini veren 'ش ' harfi var?",
+        sesDosyasi: "shin_harfi.mp3",
+        seviye: 2,
+        kutular: [
+          { src: "13.png", dogruMu: true },
+          { src: "16.png", dogruMu: false },
+          { src: "14.png", dogruMu: true },
+          { src: "17.png", dogruMu: false },
+          { src: "15.png", dogruMu: true },
+          { src: "18.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 10. Acaba hangi kelimelerde 'ي ' harfi var? Haydi bul!",
+        sesDosyasi: "ye_harfi.mp3",
+        seviye: 2,
+        kutular: [
+          { src: "19.png", dogruMu: true },
+          { src: "22.png", dogruMu: false },
+          { src: "20.png", dogruMu: true },
+          { src: "23.png", dogruMu: false },
+          { src: "21.png", dogruMu: true },
+          { src: "24.png", dogruMu: false }
+        ]
+      },
+      {
+        soru: "🦜 11.  Bak bakalım ' ض '  harfi hangi kutulara saklanmış olabilir?!",
+        sesDosyasi: "dat_harfi.mp3",
+        seviye: 2,
+        kutular: [
+          { src: "25.png", dogruMu: true },
+          { src: "28.png", dogruMu: false },
+          { src: "26.png", dogruMu: true },
+          { src: "29.png", dogruMu: false },
+          { src: "27.png", dogruMu: true },
+          { src: "30.png", dogruMu: false }
+        ]
+      },
+      
+    ];
+
+    // Oyun değişkenleri
+    let puan = 0;
+    let dogruSayisi = 0;
+    let toplamDogru;
+    let mevcutSoruIndex = 0;
+    let soruSesDosyasi = "soru_baslangic.mp3";
+    let oyunBitti = false;
+    let seviye = 1;
+
+    // Rastgele papağan tepkisi seç
+    function rastgeleTepki(dogruMu) {
+      const rastgele = Math.floor(Math.random() * 3) + 1;
+      return dogruMu ? `dogru${rastgele}.mp3` : `yanlis${rastgele}.mp3`;
+    }
+
+    // Bilgi penceresini kapat
+    function kapatBilgi() {
+      document.getElementById("bilgiPenceresi").style.display = "none";
+      
+      // Başlık animasyonunu göster
+      const baslikAnimasyon = document.getElementById("baslikAnimasyon");
+      baslikAnimasyon.style.opacity = 1;
+      baslikAnimasyon.classList.add("animate-pulse");
+      
+      // Sesleri çal
+      sesOynat("harf_avi_basliyor.mp3").then(() => {
+        // Başlık animasyonunu kaldır
+        setTimeout(() => {
+          baslikAnimasyon.style.opacity = 0;
+          baslikAnimasyon.classList.remove("animate-pulse");
+          
+          // Soru balonunu göster
+          document.getElementById("soruBalonu").classList.add("animate-slide-in");
+          
+          // Kutuları yükle
+          yukleKutular();
+          
+          // Soru sesini çal
+          setTimeout(() => {
+            sesOynat(soruSesDosyasi);
+          }, 500);
+        }, 1000);
+      });
+    }
+
+    // Kutuları yükleme fonksiyonu
+    function yukleKutular() {
+      const alan = document.getElementById("kutular");
+      const kutular = alan.getElementsByTagName("img");
+      
+      for (let i = 0; i < kutular.length; i++) {
+        setTimeout(() => {
+          kutular[i].classList.add("animate-scale-in");
+        }, i * 100);
+      }
+    }
+
+    // Ses oynatma fonksiyonu
+    function sesOynat(dosya) {
+      return new Promise((resolve) => {
+        if (!dosya) return resolve();
+        const ses = new Audio(dosya);
+        ses.play().catch(e => console.log("Ses oynatılamadı:", e));
+        ses.onended = resolve;
+      });
+    }
+
+    // Oyun yüklendiğinde
+    window.onload = function() {
+      toplamDogru = sorular[0].kutular.filter(k => k.dogruMu).length;
+      const karisik = [...sorular[0].kutular].sort(() => Math.random() - 0.5);
+      const alan = document.getElementById("kutular");
+      
+      karisik.forEach(kutu => {
+        const img = document.createElement("img");
+        img.src = kutu.src;
+        img.alt = "Kelime";
+        img.onclick = () => kontrolEt(img, kutu.dogruMu);
+        alan.appendChild(img);
+      });
+    };
+
+    // Kontrol fonksiyonu
+    function kontrolEt(elem, dogruMu) {
+      // Eğer bu kutu zaten cevaplandıysa bir şey yapma
+      if (elem.classList.contains('dogru-kutu') || oyunBitti) return;
+      
+      const papa = document.getElementById("papagan");
+      const mesaj = document.getElementById("mesaj");
+
+      if (dogruMu) {
+        puan += 10;
+        dogruSayisi++;
+        mesaj.textContent = "✅ Aferin! Doğru cevap!";
+        mesaj.style.color = "green";
+        papa.src = "papa_sec.gif";
+        sesOynat("dogru.mp3").then(() => sesOynat(rastgeleTepki(true)));
+        elem.classList.add('dogru-kutu');
+      } else {
+        puan = Math.max(0, puan - 5);
+        mesaj.textContent = "❌ Tekrar deneyin!";
+        mesaj.style.color = "red";
+        papa.src = "papa_yanlis.gif";
+        sesOynat("yanlis.mp3").then(() => sesOynat(rastgeleTepki(false)));
+        elem.classList.add('yanlis-kutu');
+      }
+
+      document.getElementById("puan").textContent = "Puan: " + puan;
+
+      if (dogruSayisi === toplamDogru) {
+        setTimeout(() => {
+          mesaj.textContent = "🎉 Tebrikler! Tüm doğruları buldunuz!";
+          mesaj.style.color = "purple";
+          papa.src = "papa_dogru.gif";
+          sesOynat("kutlama.mp3");
+          
+          // Son soruysa ödül ekranını göster
+          if (mevcutSoruIndex === sorular.length - 1) {
+            oyunBitti = true;
+            setTimeout(() => {
+              odulGoster();
+            }, 2000);
+          }
+        }, 500);
+      }
+
+      setTimeout(() => {
+        papa.src = "papa_soru.gif";
+      }, 1500);
+    }
+
+    // Yeni soru fonksiyonu
+    function yeniSoruGetir() {
+      if (oyunBitti) return;
+      
+      mevcutSoruIndex = (mevcutSoruIndex + 1) % sorular.length;
+      const yeniSoru = sorular[mevcutSoruIndex];
+      
+      // Seviye kontrolü
+      if (yeniSoru.seviye > seviye) {
+        seviye = yeniSoru.seviye;
+        document.getElementById("mesaj").textContent = `🎯 Seviye ${seviye}'ye geçtiniz!`;
+        document.getElementById("mesaj").style.color = "gold";
+      }
+      
+      // Soru balonunu gizle
+      const soruBalonu = document.getElementById("soruBalonu");
+      soruBalonu.style.opacity = 0;
+      soruBalonu.style.transform = "translateY(20px)";
+      
+      // Kutuları gizle
+      const alan = document.getElementById("kutular");
+      const kutular = alan.getElementsByTagName("img");
+      for (let i = 0; i < kutular.length; i++) {
+        kutular[i].style.opacity = 0;
+        kutular[i].style.transform = "scale(0.8)";
+      }
+      
+      setTimeout(() => {
+        // Yeni soruyu ayarla
+        soruBalonu.textContent = yeniSoru.soru;
+        soruSesDosyasi = yeniSoru.sesDosyasi;
+        
+        // Kutuları temizle ve yenilerini ekle
+        alan.innerHTML = "";
+        const karisik = [...yeniSoru.kutular].sort(() => Math.random() - 0.5);
+        karisik.forEach(kutu => {
+          const img = document.createElement("img");
+          img.src = kutu.src;
+          img.alt = "Kelime";
+          img.onclick = () => kontrolEt(img, kutu.dogruMu);
+          alan.appendChild(img);
+        });
+        
+        // Yeni soru balonunu göster
+        soruBalonu.style.opacity = 1;
+        soruBalonu.style.transform = "translateY(0)";
+        
+        // Kutuları animasyonla göster
+        setTimeout(() => {
+          yukleKutular();
+        }, 300);
+        
+        dogruSayisi = 0;
+        toplamDogru = yeniSoru.kutular.filter(k => k.dogruMu).length;
+        document.getElementById("mesaj").textContent = "";
+        
+        // Soru sesini çal
+        sesOynat(soruSesDosyasi);
+      }, 500);
+    }
+
+    // Ödül göster
+      function odulGoster() {
+      const odulEkrani = document.getElementById("odulEkrani");
+      const odulResim = document.getElementById("odulResim");
+      const odulEmoji = document.getElementById("odulEmoji");
+      const odulBaslik = document.getElementById("odulBaslik");
+      const odulPuan = document.getElementById("odulPuan");
+      const odulMesaj = document.getElementById("odulMesaj");
+      
+      odulPuan.textContent = `Toplam Puan: ${puan}`;
+      
+      // Madalya CSS sınıflarını ve emojileri ayarla
+      if (puan >= 150) { // 3. seviye (10-15 soru)
+        odulResim.className = "medal gold";
+        odulEmoji.textContent = "🥇";
+        odulBaslik.textContent = "Altın Madalya!";
+        odulMesaj.textContent = "Mükemmel! Tüm seviyeleri tamamladınız!";
+      } else if (puan >= 90) { // 2. seviye (6-10 soru)
+        odulResim.className = "medal silver";
+        odulEmoji.textContent = "🥈";
+        odulBaslik.textContent = "Gümüş Madalya!";
+        odulMesaj.textContent = "Harika! İkinci seviyeyi tamamladınız!";
+      } else { // 1. seviye (1-5 soru)
+        odulResim.className = "medal bronze";
+        odulEmoji.textContent = "🥉";
+        odulBaslik.textContent = "Bronz Madalya!";
+        odulMesaj.textContent = "Tebrikler! İlk seviyeyi tamamladınız!";
+      }
+      
+      odulEkrani.style.display = "flex";
+    }
+
+    // Oyunu kapat
+    function kapatOyun() {
+      window.close(); // Veya istediğiniz başka bir işlem
+    }
+
+  </script>
+</body>
+</html>
